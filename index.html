@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>신비한 양자 탐험대</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --panel-2: #0b1224;
+    --border: #334155;
+    --text: #f1f5f9;
+    --muted: #cbd5e1;
+    --amber: #fbbf24;
+    --cyan: #22d3ee;
+    --violet: #a78bfa;
+    --emerald: #34d399;
+    --pink: #f472b6;
+    --blue: #60a5fa;
+    --red: #f87171;
+  }
+  * { box-sizing: border-box; }
+  /* 화면 너비에 맞춰 글자 크기가 자동으로 커지고 작아져요 (최소 17px ~ 최대 24px) */
+  html { font-size: clamp(17px, 0.9rem + 0.6vw, 24px); }
+  body {
+    margin: 0;
+    font-family: 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    background: var(--bg);
+    background-image: radial-gradient(circle at 20% 10%, rgba(99,102,241,.18), transparent 40%),
+                      radial-gradient(circle at 80% 90%, rgba(34,211,238,.12), transparent 40%);
+    background-attachment: fixed;
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  button { font-family: inherit; }
+  h1, h2, h3 { margin: 0 0 .6em; line-height: 1.3; font-weight: normal; }
+  p { margin: 0 0 .8em; }
+
+  /* ---------- 상단 메뉴 ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: .5rem;
+    padding: .6rem 1rem;
+    background: rgba(15,23,42,.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+  }
+  .tabs { display: flex; gap: .4rem; overflow-x: auto; flex: 1; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: none;
+    background: transparent; color: var(--muted);
+    border: 2px solid transparent; border-radius: 999px;
+    padding: .35rem .9rem; font-size: 1rem; cursor: pointer;
+    white-space: nowrap;
+  }
+  .tab:hover { background: var(--panel); color: var(--text); }
+  .tab.active { background: var(--tab-color, #4f46e5); color: #0f172a; }
+  .tab[data-go="home"].active { --tab-color: #818cf8; }
+  .fs-btn {
+    flex: none; display: none;
+    background: var(--panel); color: var(--text);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: .35rem .9rem; font-size: .9rem; cursor: pointer;
+  }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem 2rem; }
+  .page { display: none; animation: fadeIn .35s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- 공통 요소 ---------- */
+  .page-title { font-size: 2rem; text-align: center; color: var(--accent); }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 0 18px rgba(59,130,246,.25);
+    margin-bottom: 1.25rem;
+  }
+  .lead { font-size: 1.2rem; color: var(--text); text-align: center; }
+  .teacher {
+    background: rgba(30,41,59,.6);
+    border: 1px solid #475569;
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    font-size: 1.05rem;
+    color: var(--muted);
+  }
+  .teacher b { color: var(--accent); }
+  .teacher strong { color: #fff; font-weight: normal; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+    border: none; border-radius: 999px;
+    padding: .75rem 1.6rem;
+    font-size: 1.2rem; color: #fff; cursor: pointer;
+    box-shadow: 0 6px 16px rgba(0,0,0,.35);
+    transition: transform .15s ease, filter .15s ease;
+  }
+  .btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+  .btn:active { transform: scale(.96); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; filter: none; }
+  .btn.primary { background: linear-gradient(90deg, #3b82f6, #9333ea); }
+  .btn.secondary { background: linear-gradient(90deg, #10b981, #06b6d4); }
+  .btn.warning { background: linear-gradient(90deg, #f59e0b, #f97316); }
+  .btn.gray { background: #475569; }
+  .center { text-align: center; }
+
+  .page-nav {
+    display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+  .page-nav .btn { font-size: 1.05rem; padding: .6rem 1.3rem; }
+
+  /* ---------- 홈 ---------- */
+  .hero { text-align: center; margin-bottom: 2rem; }
+  .hero .emoji { font-size: 4.5rem; animation: float 3s ease-in-out infinite; }
+  .hero h1 {
+    font-size: 2.6rem;
+    background: linear-gradient(90deg, var(--cyan), var(--violet));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p { font-size: 1.25rem; color: var(--muted); max-width: 46rem; margin: 0 auto; }
+  .group-title { font-size: 1.4rem; color: var(--muted); margin: 1.5rem 0 .8rem; }
+  .menu-grid {
+    display: grid; gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  }
+  .menu-card {
+    text-align: left; cursor: pointer;
+    background: var(--panel); color: var(--text);
+    border: 2px solid var(--border); border-radius: 1.5rem;
+    padding: 1.25rem 1.4rem;
+    display: flex; flex-direction: column; gap: .35rem;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+  .menu-card:hover { transform: translateY(-4px); border-color: var(--c); box-shadow: 0 0 22px color-mix(in srgb, var(--c) 45%, transparent); }
+  .menu-card .icon { font-size: 3rem; line-height: 1.1; }
+  .menu-card .num { font-size: .95rem; color: var(--c); }
+  .menu-card .name { font-size: 1.45rem; }
+  .menu-card .desc { font-size: 1rem; color: var(--muted); }
+  .menu-card .go { margin-top: auto; padding-top: .4rem; font-size: 1.05rem; color: var(--c); }
+
+  /* ---------- 1. 양자 중첩 ---------- */
+  .stage {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 17rem; margin: 1rem 0 1.25rem;
+  }
+  .cat-svg { width: clamp(150px, 26vw, 260px); height: auto; cursor: pointer; }
+  .badge {
+    display: inline-block; margin-top: .8rem;
+    padding: .35rem 1rem; border-radius: 999px;
+    font-size: 1.1rem; background: #334155; color: var(--text);
+  }
+  .result { font-size: 1.5rem; color: var(--cyan); text-align: center; min-height: 2.4rem; }
+
+  @keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    20% { transform: translate(-3px, 0) rotate(1deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+  }
+  @keyframes blink {
+    0% { opacity: 1; filter: hue-rotate(0deg); }
+    50% { opacity: .7; filter: hue-rotate(180deg); }
+    100% { opacity: 1; filter: hue-rotate(360deg); }
+  }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-18%); } }
+  .shaking { animation: shake .5s infinite, blink .6s infinite alternate; }
+  .superposed { animation: blink .6s infinite alternate; }
+  .floating { animation: float 3s ease-in-out infinite; }
+
+  /* ---------- 2. 양자 얽힘 ---------- */
+  .en-msg { font-size: 1.2rem; text-align: center; min-height: 3.6rem; }
+  .en-stage {
+    position: relative;
+    height: clamp(15rem, 42vh, 21rem);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+    margin: 1rem 0 1.25rem;
+  }
+  .en-bg {
+    position: absolute; bottom: .6rem; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center;
+    opacity: .35; font-size: 1rem; transition: opacity 1s;
+  }
+  .en-bg .big { font-size: 3.2rem; line-height: 1.1; }
+  .en-bg.earth { left: 25%; }
+  .en-bg.space { left: 75%; opacity: 0; }
+  .en-stage[data-step="2"] .en-bg.space,
+  .en-stage[data-step="3"] .en-bg.space { opacity: .5; }
+  .en-line {
+    position: absolute; top: 42%; height: .4rem; transform: translateY(-50%);
+    left: 36%; width: 28%; opacity: 0; z-index: 1;
+    background: repeating-linear-gradient(90deg, #3b82f6 0 12px, transparent 12px 24px);
+    background-size: 200% 100%;
+    animation: moveLine 1s linear infinite;
+    transition: left 1s ease, width 1s ease, opacity .4s;
+  }
+  @keyframes moveLine { to { background-position: -200% 0; } }
+  .en-stage[data-step="1"] .en-line { opacity: 1; }
+  .en-stage[data-step="2"] .en-line { opacity: 1; left: 15%; width: 70%; }
+  .en-box {
+    position: absolute; top: 42%; transform: translate(-50%, -50%);
+    z-index: 2; transition: left 1s ease; text-align: center;
+  }
+  .en-box .thing { font-size: clamp(3rem, 9vw, 5.5rem); line-height: 1; }
+  .en-box .num { display: inline-block; font-size: clamp(3.5rem, 10vw, 6rem); line-height: 1; animation: bounce .8s ease-in-out infinite; text-shadow: 0 4px 12px rgba(0,0,0,.5); }
+  .en-box .label {
+    position: absolute; top: calc(100% + .3rem); left: 50%; transform: translateX(-50%);
+    white-space: nowrap; font-size: 1.1rem;
+  }
+  #boxA { left: 36%; }
+  #boxB { left: 64%; }
+  .en-stage[data-step="2"] #boxA, .en-stage[data-step="3"] #boxA { left: 15%; }
+  .en-stage[data-step="2"] #boxB, .en-stage[data-step="3"] #boxB { left: 85%; }
+
+  /* ---------- 3. 큐비트 ---------- */
+  .coin-compare { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+  .coin-panel {
+    text-align: center; padding: 1.5rem;
+    background: var(--panel); border: 2px solid var(--border); border-radius: 1.5rem;
+  }
+  .coin-panel.quantum { border-color: var(--violet); box-shadow: 0 0 20px rgba(167,139,250,.3); }
+  .coin-panel h3 { font-size: 1.5rem; }
+  .coin-panel p { color: var(--muted); font-size: 1.1rem; }
+  .coin-svg { width: clamp(110px, 16vw, 170px); height: auto; margin: .5rem auto 1rem; display: block; }
+  .spin { animation: spinY .5s linear infinite; }
+  @keyframes spinY { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0); } }
+
+  /* ---------- 4. 보물 찾기 ---------- */
+  .search-game { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+  .track { background: var(--panel); border: 2px solid var(--border); border-radius: 1.5rem; padding: 1.25rem; text-align: center; }
+  .track.quantum { border-color: var(--cyan); box-shadow: 0 0 20px rgba(34,211,238,.25); }
+  .track h3 { font-size: 1.5rem; }
+  .track .status { color: var(--muted); min-height: 3.4rem; font-size: 1.05rem; }
+  .boxes { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; margin: .5rem 0 1rem; }
+  .tbox {
+    aspect-ratio: 1 / 1; max-height: 6rem;
+    display: flex; align-items: center; justify-content: center;
+    background: #0b1224; border: 3px solid #475569; border-radius: .8rem;
+    font-size: 2rem; transition: background .2s, border-color .2s;
+  }
+  .tbox.checking { border-color: var(--amber); background: rgba(251,191,36,.2); }
+  .tbox.found { border-color: var(--emerald); background: rgba(52,211,153,.25); color: var(--emerald); }
+  .tbox.miss { border-color: var(--red); background: rgba(248,113,113,.15); color: var(--red); }
+
+  /* ---------- 5. 어디에 쓸까 ---------- */
+  .use-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+  .use-card { background: var(--panel); border: 2px solid var(--border); border-radius: 1.5rem; padding: 1.5rem; }
+  .use-card .icon { font-size: 3.2rem; }
+  .use-card h3 { font-size: 1.45rem; color: var(--c); margin-top: .4rem; }
+  .use-card p { color: var(--muted); font-size: 1.1rem; margin: 0; }
+
+  footer { text-align: center; color: #64748b; padding: 1rem 1rem 2rem; font-size: 1rem; }
+
+  @media (max-width: 560px) {
+    main { padding: 1rem .9rem 1.5rem; }
+    .card { padding: 1.1rem; }
+    .hero h1 { font-size: 2rem; }
+    .page-title { font-size: 1.6rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <nav class="tabs" aria-label="체험 메뉴">
+    <button class="tab active" data-go="home">🏠 홈</button>
+    <button class="tab" data-go="superposition" style="--tab-color: var(--amber)">📦 양자 중첩</button>
+    <button class="tab" data-go="entanglement" style="--tab-color: var(--cyan)">🔗 양자 얽힘</button>
+    <button class="tab" data-go="qubit" style="--tab-color: var(--violet)">🪙 큐비트</button>
+    <button class="tab" data-go="search" style="--tab-color: var(--emerald)">🏃 보물 찾기</button>
+    <button class="tab" data-go="usecases" style="--tab-color: var(--pink)">🌍 어디에 쓸까?</button>
+  </nav>
+  <button class="fs-btn" id="fsBtn" type="button">⛶ 크게 보기</button>
+</header>
+
+<main>
+
+  <!-- ===================== 홈 ===================== -->
+  <section id="home" class="page active">
+    <div class="hero">
+      <div class="emoji">🚀🪐🔭</div>
+      <h1>신비한 양자 탐험대!</h1>
+      <p>
+        안녕, 꼬마 과학자 친구들!<br>
+        아주아주 작아서 눈에 보이지 않는 '양자'의 세계에서는 우리가 상상도 못할 마법 같은 일들이 벌어진대요.
+        아래에서 하고 싶은 체험을 골라 눌러 보세요!
+      </p>
+    </div>
+
+    <h2 class="group-title">✨ 양자의 마법 체험</h2>
+    <div class="menu-grid">
+      <button class="menu-card" data-go="superposition" style="--c: var(--amber)">
+        <span class="icon">📦❓</span>
+        <span class="num">마법 1</span>
+        <span class="name">양자 중첩</span>
+        <span class="desc">상자 속 고양이는 자고 있을까, 깨어 있을까?</span>
+        <span class="go">체험하러 가기 →</span>
+      </button>
+      <button class="menu-card" data-go="entanglement" style="--c: var(--cyan)">
+        <span class="icon">📦🔗📦</span>
+        <span class="num">마법 2</span>
+        <span class="name">양자 얽힘</span>
+        <span class="desc">멀리 떨어져도 연결된 마법의 텔레파시 상자!</span>
+        <span class="go">체험하러 가기 →</span>
+      </button>
+    </div>
+
+    <h2 class="group-title">💻 양자 컴퓨터 탐험</h2>
+    <div class="menu-grid">
+      <button class="menu-card" data-go="qubit" style="--c: var(--violet)">
+        <span class="icon">🪙🌀</span>
+        <span class="num">탐험 1</span>
+        <span class="name">큐비트란?</span>
+        <span class="desc">0과 1을 동시에 가지는 마법의 동전</span>
+        <span class="go">체험하러 가기 →</span>
+      </button>
+      <button class="menu-card" data-go="search" style="--c: var(--emerald)">
+        <span class="icon">🏃⭐</span>
+        <span class="num">탐험 2</span>
+        <span class="name">보물 찾기 대결</span>
+        <span class="desc">일반 컴퓨터 vs 양자 컴퓨터, 누가 더 빠를까?</span>
+        <span class="go">체험하러 가기 →</span>
+      </button>
+      <button class="menu-card" data-go="usecases" style="--c: var(--pink)">
+        <span class="icon">🌍💊</span>
+        <span class="num">탐험 3</span>
+        <span class="name">어디에 쓸까?</span>
+        <span class="desc">양자 컴퓨터가 바꿀 우리의 미래</span>
+        <span class="go">알아보러 가기 →</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================== 1. 양자 중첩 ===================== -->
+  <section id="superposition" class="page" style="--accent: var(--amber)">
+    <h2 class="page-title">📦 양자 중첩 (슈퍼파워 겹치기)</h2>
+    <div class="card">
+      <p class="lead" id="spMsg">상자 안에 귀여운 우주 고양이가 있어요. 상자를 열어 '관찰'하기 전까지 고양이는 깨어 있을까요, 아니면 자고 있을까요? 양자의 세계에서는 두 가지 상태가 동시에 겹쳐 있답니다!</p>
+
+      <div class="stage">
+        <svg id="catSvg" class="cat-svg shaking" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="고양이 상자"></svg>
+        <span class="badge" id="spBadge">상자가 닫혀 있어요 (중첩 상태)</span>
+      </div>
+
+      <p class="result" id="spResult"></p>
+      <div class="center">
+        <button class="btn warning" id="spBtn">👁️ 상자 열어서 관찰하기!</button>
+      </div>
+    </div>
+    <div class="teacher">
+      <b>💡 선생님의 설명:</b> 관찰하기 전에는 여러 상태가 섞여 있다가, 우리가 보는 순간 하나의 상태로 결정되는 신기한 현상을 <strong>'양자 중첩'</strong>이라고 불러요! 과학자 슈뢰딩거가 이걸 '상자 속 고양이' 이야기로 설명했답니다.
+    </div>
+    <div class="page-nav">
+      <button class="btn gray" data-go="home">🏠 홈으로</button>
+      <button class="btn primary" data-go="entanglement">다음: 양자 얽힘 →</button>
+    </div>
+  </section>
+
+  <!-- ===================== 2. 양자 얽힘 ===================== -->
+  <section id="entanglement" class="page" style="--accent: var(--cyan)">
+    <h2 class="page-title">🔗 양자 얽힘 (마법의 텔레파시)</h2>
+    <div class="card">
+      <p class="en-msg" id="enMsg"></p>
+
+      <div class="en-stage" id="enStage" data-step="0">
+        <div class="en-bg earth"><span class="big">🌍</span><span>지구</span></div>
+        <div class="en-bg space"><span class="big">🪐</span><span>안드로메다 은하</span></div>
+        <div class="en-line"></div>
+        <div class="en-box" id="boxA"><div class="thing" id="boxAThing">📦</div><span class="label" id="boxALabel">상자 1</span></div>
+        <div class="en-box" id="boxB"><div class="thing" id="boxBThing">📦</div><span class="label" id="boxBLabel">상자 2</span></div>
+      </div>
+
+      <div class="center">
+        <button class="btn primary" id="enBtn">✨ 마법의 얽힘 만들기</button>
+      </div>
+    </div>
+    <div class="teacher">
+      <b>💡 선생님의 설명:</b> 두 입자가 마법처럼 연결되어, 하나를 확인하면 아무리 멀리 떨어져 있어도 다른 하나의 상태를 즉시 알 수 있는 현상을 <strong>'양자 얽힘'</strong>이라고 해요. 아인슈타인은 이걸 '유령 같은 원격 작용'이라고 불렀답니다!
+    </div>
+    <div class="page-nav">
+      <button class="btn gray" data-go="superposition">← 이전: 양자 중첩</button>
+      <button class="btn primary" data-go="qubit">다음: 큐비트 →</button>
+    </div>
+  </section>
+
+  <!-- ===================== 3. 큐비트 ===================== -->
+  <section id="qubit" class="page" style="--accent: var(--violet)">
+    <h2 class="page-title">🪙 마법의 동전, 큐비트(Qubit)</h2>
+    <div class="card">
+      <p class="lead">우리가 쓰는 스마트폰이나 일반 컴퓨터는 모든 정보를 <b>0 또는 1</b>로만 저장해요. 마치 동전이 앞면 아니면 뒷면인 것처럼요!</p>
+      <p class="lead" style="margin:0">하지만 양자 컴퓨터의 <b>큐비트</b>는 팽이처럼 빙글빙글 돌고 있어서, <b>0과 1의 상태를 동시에</b> 가질 수 있어요. 상자 속 고양이처럼 '중첩'되어 있는 거죠!</p>
+    </div>
+
+    <div class="coin-compare">
+      <div class="coin-panel">
+        <h3>일반 컴퓨터 (비트)</h3>
+        <p>0 아니면 1, 한 가지만!</p>
+        <svg class="coin-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" fill="#e5e7eb" stroke="#9ca3af" stroke-width="4"/>
+          <text id="bitText" x="50" y="64" font-size="40" text-anchor="middle" fill="#374151" font-family="sans-serif" font-weight="bold">0</text>
+        </svg>
+        <button class="btn primary" id="flipBtn">동전 던지기</button>
+      </div>
+
+      <div class="coin-panel quantum">
+        <h3 style="color: var(--violet)">양자 컴퓨터 (큐비트)</h3>
+        <p>0과 1이 동시에 섞여 있음!</p>
+        <svg id="qubitSvg" class="coin-svg spin" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" fill="#ddd6fe" stroke="#8b5cf6" stroke-width="4"/>
+          <text id="qubitText" x="50" y="64" font-size="40" text-anchor="middle" fill="#6d28d9" font-family="sans-serif" font-weight="bold">?</text>
+        </svg>
+        <button class="btn warning" id="measureBtn">👁️ 결과 확인하기</button>
+      </div>
+    </div>
+
+    <div class="teacher" style="margin-top:1.25rem">
+      <b>💡 선생님의 설명:</b> 큐비트는 결과를 <strong>확인하는 순간</strong> 0이나 1 중 하나로 정해져요. 확인하기 전까지는 둘 다인 상태라서, 양자 컴퓨터는 여러 가능성을 한꺼번에 다룰 수 있답니다!
+    </div>
+    <div class="page-nav">
+      <button class="btn gray" data-go="entanglement">← 이전: 양자 얽힘</button>
+      <button class="btn primary" data-go="search">다음: 보물 찾기 →</button>
+    </div>
+  </section>
+
+  <!-- ===================== 4. 보물 찾기 ===================== -->
+  <section id="search" class="page" style="--accent: var(--emerald)">
+    <h2 class="page-title">🏃 보물 찾기 대결!</h2>
+    <div class="card">
+      <p class="lead">4개의 상자 중 하나에 보물(★)이 숨겨져 있어요. 컴퓨터에게 보물을 찾으라고 명령해 봅시다!</p>
+      <p style="font-size:1.1rem; color: var(--muted); text-align:center; margin:0">
+        <b style="color:var(--text)">일반 컴퓨터</b>는 상자를 1번부터 하나씩 열어보고,
+        <b style="color:var(--cyan)">양자 컴퓨터</b>는 '중첩' 덕분에 4개의 상자를 <b style="color:var(--cyan)">한 번에</b> 살펴봐요!
+      </p>
+    </div>
+
+    <div class="search-game">
+      <div class="track">
+        <h3>💻 일반 컴퓨터</h3>
+        <p class="status" id="normalStatus">대기 중...</p>
+        <div class="boxes" id="normalBoxes"></div>
+        <button class="btn primary" id="normalBtn">일반 검색 시작</button>
+      </div>
+      <div class="track quantum">
+        <h3 style="color: var(--cyan)">⚛️ 양자 컴퓨터</h3>
+        <p class="status" id="quantumStatus">대기 중...</p>
+        <div class="boxes" id="quantumBoxes"></div>
+        <button class="btn secondary" id="quantumBtn">양자 검색 시작</button>
+      </div>
+    </div>
+
+    <div class="center" style="margin-top:1.25rem">
+      <button class="btn gray" id="resetGameBtn">🔄 보물 다시 숨기기</button>
+    </div>
+
+    <div class="teacher" style="margin-top:1.25rem">
+      <b>💡 선생님의 설명:</b> 실제 양자 컴퓨터는 <strong>'그로버 알고리즘'</strong>이라는 특별한 방법으로 정답을 찾아요. 상자가 4개일 때는 딱 한 번 만에 보물을 찾을 수 있고, 상자가 아주 많아질수록 일반 컴퓨터보다 훨씬 빨라진답니다!
+    </div>
+    <div class="page-nav">
+      <button class="btn gray" data-go="qubit">← 이전: 큐비트</button>
+      <button class="btn primary" data-go="usecases">다음: 어디에 쓸까? →</button>
+    </div>
+  </section>
+
+  <!-- ===================== 5. 어디에 쓸까 ===================== -->
+  <section id="usecases" class="page" style="--accent: var(--pink)">
+    <h2 class="page-title">🌍 양자 컴퓨터는 어디에 쓰일까요?</h2>
+    <div class="card">
+      <p class="lead" style="margin:0">수천 년이 걸릴 아주 복잡한 문제들을 양자 컴퓨터는 훨씬 빨리 풀 수 있어요! 미래에는 이런 곳에 쓰일 거예요.</p>
+    </div>
+    <div class="use-grid">
+      <div class="use-card" style="--c: var(--blue)">
+        <div class="icon">💊</div>
+        <h3>새로운 약 만들기</h3>
+        <p>우리 몸속 아주 작은 세포와 바이러스가 어떻게 생겼는지 계산해서, 병을 고치는 약을 빠르게 찾아내요.</p>
+      </div>
+      <div class="use-card" style="--c: var(--amber)">
+        <div class="icon">🔐</div>
+        <h3>복잡한 비밀번호 풀기</h3>
+        <p>일반 컴퓨터로는 풀기 어려운 암호를 금방 풀 수 있어서, 앞으로는 절대 뚫리지 않는 새로운 양자 암호를 만들게 될 거예요.</p>
+      </div>
+      <div class="use-card" style="--c: var(--emerald)">
+        <div class="icon">🚗</div>
+        <h3>막히지 않는 길 찾기</h3>
+        <p>수만 대의 자동차가 어디로 가야 가장 안 막히고 빠른지 계산해서, 신호등을 똑똑하게 조절해 줘요.</p>
+      </div>
+    </div>
+    <div class="page-nav">
+      <button class="btn gray" data-go="search">← 이전: 보물 찾기</button>
+      <button class="btn primary" data-go="home">🏠 처음으로</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>우주와 원자의 비밀을 푸는 열쇠, 양자역학! 🌌</footer>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  /* ---------- 화면 이동 ---------- */
+  function go(id) {
+    document.querySelectorAll('.page').forEach((p) => p.classList.toggle('active', p.id === id));
+    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.go === id));
+    const tab = document.querySelector('.tab.active');
+    if (tab) tab.scrollIntoView({ block: 'nearest', inline: 'center' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-go]');
+    if (t) go(t.dataset.go);
+  });
+
+  /* ---------- 크게 보기 (전체 화면) ---------- */
+  const fsBtn = $('fsBtn');
+  if (document.fullscreenEnabled) {
+    fsBtn.style.display = 'inline-block';
+    fsBtn.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen().catch(() => {});
+    });
+    document.addEventListener('fullscreenchange', () => {
+      fsBtn.textContent = document.fullscreenElement ? '✕ 작게 보기' : '⛶ 크게 보기';
+    });
+  }
+
+  /* ---------- 1. 양자 중첩 ---------- */
+  const CAT_CLOSED = `
+    <rect x="10" y="20" width="80" height="70" fill="#8B4513" rx="4"/>
+    <path d="M 10 20 L 50 10 L 90 20 Z" fill="#A0522D"/>
+    <text x="50" y="66" font-size="40" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-weight="bold">?</text>`;
+  const CAT_AWAKE = `
+    <path d="M 10 50 L 50 30 L 90 50 L 90 90 L 10 90 Z" fill="#A0522D"/>
+    <circle cx="50" cy="50" r="25" fill="#fcd34d"/>
+    <polygon points="30,35 40,25 45,35" fill="#fcd34d"/>
+    <polygon points="70,35 60,25 55,35" fill="#fcd34d"/>
+    <circle cx="42" cy="48" r="3" fill="#000"/>
+    <circle cx="58" cy="48" r="3" fill="#000"/>
+    <path d="M 46 55 Q 50 59 54 55" stroke="#000" fill="none" stroke-width="2"/>
+    <text x="78" y="28" font-size="12">✨</text>
+    <rect x="10" y="70" width="80" height="20" fill="#8B4513" rx="2"/>`;
+  const CAT_ASLEEP = `
+    <path d="M 10 50 L 50 30 L 90 50 L 90 90 L 10 90 Z" fill="#A0522D"/>
+    <circle cx="50" cy="65" r="20" fill="#fcd34d"/>
+    <polygon points="35,55 42,48 45,55" fill="#fcd34d"/>
+    <polygon points="65,55 58,48 55,55" fill="#fcd34d"/>
+    <path d="M 40 65 Q 43 62 45 65" stroke="#000" fill="none" stroke-width="2"/>
+    <path d="M 55 65 Q 58 62 60 65" stroke="#000" fill="none" stroke-width="2"/>
+    <text x="64" y="44" font-size="12" fill="#e2e8f0" font-family="sans-serif">Zzz...</text>
+    <rect x="10" y="70" width="80" height="20" fill="#8B4513" rx="2"/>`;
+  const SP_INTRO = "상자 안에 귀여운 우주 고양이가 있어요. 상자를 열어 '관찰'하기 전까지 고양이는 깨어 있을까요, 아니면 자고 있을까요? 양자의 세계에서는 두 가지 상태가 동시에 겹쳐 있답니다!";
+  let boxOpen = false;
+
+  function closeBox() {
+    boxOpen = false;
+    $('catSvg').innerHTML = CAT_CLOSED;
+    $('catSvg').classList.add('shaking');
+    $('catSvg').classList.remove('floating');
+    $('spMsg').textContent = SP_INTRO;
+    $('spBadge').textContent = '상자가 닫혀 있어요 (중첩 상태)';
+    $('spBadge').style.background = '';
+    $('spBadge').style.color = '';
+    $('spResult').textContent = '';
+    $('spBtn').className = 'btn warning';
+    $('spBtn').textContent = '👁️ 상자 열어서 관찰하기!';
+  }
+  function openBox() {
+    if (boxOpen) return;
+    boxOpen = true;
+    const awake = Math.random() < 0.5;
+    const svg = $('catSvg');
+    svg.classList.remove('shaking');
+    svg.classList.add('floating');
+    svg.innerHTML = awake ? CAT_AWAKE : CAT_ASLEEP;
+    $('spMsg').textContent = "앗! 상자를 열어서 '관찰'했더니 고양이의 상태가 하나로 결정되었어요!";
+    $('spBadge').textContent = awake ? '야옹! 깨어 있는 고양이 발견!' : '쉿, 자고 있는 고양이 발견!';
+    $('spBadge').style.background = awake ? '#d1fae5' : '#fef3c7';
+    $('spBadge').style.color = awake ? '#065f46' : '#92400e';
+    $('spResult').textContent = '결과: 고양이는 ' + (awake ? '활짝 깨어 있어요! 😸' : '쿨쿨 자고 있어요! 😴');
+    $('spBtn').className = 'btn secondary';
+    $('spBtn').textContent = '🔄 상자 다시 닫기';
+  }
+  $('catSvg').addEventListener('click', openBox);
+  $('spBtn').addEventListener('click', () => (boxOpen ? closeBox() : openBox()));
+  closeBox();
+
+  /* ---------- 2. 양자 얽힘 ---------- */
+  const EN_MSG = [
+    "두 개의 마법 상자를 서로 '얽힘' 상태로 만들어 보세요. 보이지 않는 끈으로 연결된답니다!",
+    "짜잔! 두 상자가 양자 얽힘으로 연결되었어요. 이제 하나를 머나먼 우주로 보내 볼까요?",
+    "상자 하나가 안드로메다 은하로 갔어요. 엄청 멀리 떨어져 있죠? 이제 지구에 있는 상자를 열어 보세요!",
+    "와! 지구 상자를 열어 숫자가 결정되는 바로 그 순간, 우주 상자의 숫자도 반대로 즉시 결정되었어요!"
+  ];
+  const EN_BTN = [
+    ['btn primary', '✨ 마법의 얽힘 만들기'],
+    ['btn secondary', '🚀 우주로 보내기'],
+    ['btn warning', '👁️ 지구 상자 열어보기!'],
+    ['btn primary', '🔄 다시 실험하기']
+  ];
+  let enStep = 0, earth = 0;
+  const numHTML = (n) => `<span class="num" style="color:${n ? '#f87171' : '#60a5fa'}">${n}</span>`;
+
+  function renderEn() {
+    $('enStage').dataset.step = enStep;
+    $('enMsg').textContent = EN_MSG[enStep];
+    $('enBtn').className = EN_BTN[enStep][0];
+    $('enBtn').textContent = EN_BTN[enStep][1];
+    $('boxALabel').textContent = enStep >= 2 ? '지구의 상자' : '상자 1';
+    $('boxBLabel').textContent = enStep >= 2 ? '우주의 상자' : '상자 2';
+    if (enStep < 3) {
+      ['boxAThing', 'boxBThing'].forEach((id) => {
+        $(id).innerHTML = '📦';
+        $(id).classList.toggle('superposed', enStep >= 1);
+      });
+    } else {
+      $('boxAThing').classList.remove('superposed');
+      $('boxBThing').classList.remove('superposed');
+      $('boxAThing').innerHTML = numHTML(earth);
+      $('boxBThing').innerHTML = numHTML(1 - earth); // 항상 반대 숫자
+    }
+  }
+  $('enBtn').addEventListener('click', () => {
+    if (enStep === 2) earth = Math.random() < 0.5 ? 1 : 0;
+    enStep = (enStep + 1) % 4;
+    renderEn();
+  });
+  renderEn();
+
+  /* ---------- 3. 큐비트 ---------- */
+  $('flipBtn').addEventListener('click', () => {
+    $('bitText').textContent = Math.random() < 0.5 ? 1 : 0;
+  });
+  let measured = false;
+  $('measureBtn').addEventListener('click', () => {
+    measured = !measured;
+    $('qubitSvg').classList.toggle('spin', !measured);
+    $('qubitText').textContent = measured ? (Math.random() < 0.5 ? 1 : 0) : '?';
+    $('measureBtn').className = measured ? 'btn gray' : 'btn warning';
+    $('measureBtn').textContent = measured ? '🌀 다시 섞기 (중첩)' : '👁️ 결과 확인하기';
+  });
+
+  /* ---------- 4. 보물 찾기 ---------- */
+  let treasure = 1, busy = false;
+  function makeBoxes(containerId, prefix) {
+    const c = $(containerId);
+    c.innerHTML = '';
+    for (let i = 1; i <= 4; i++) {
+      const d = document.createElement('div');
+      d.className = 'tbox';
+      d.id = prefix + i;
+      d.textContent = i;
+      c.appendChild(d);
+    }
+  }
+  function resetGame() {
+    if (busy) return;
+    treasure = Math.floor(Math.random() * 4) + 1;
+    makeBoxes('normalBoxes', 'nb');
+    makeBoxes('quantumBoxes', 'qb');
+    $('normalStatus').textContent = '대기 중...';
+    $('quantumStatus').textContent = '대기 중...';
+    $('normalBtn').disabled = false;
+    $('quantumBtn').disabled = false;
+  }
+  async function runNormal() {
+    if (busy) return;
+    busy = true;
+    $('normalBtn').disabled = true;
+    $('normalStatus').textContent = '1번 상자부터 하나씩 열어봅니다...';
+    for (let i = 1; i <= 4; i++) {
+      const box = $('nb' + i);
+      box.classList.add('checking');
+      await sleep(700);
+      box.classList.remove('checking');
+      if (i === treasure) {
+        box.classList.add('found');
+        box.textContent = '★';
+        $('normalStatus').textContent = `[성공] ${i}번 만에 보물을 찾았습니다!`;
+        break;
+      }
+      box.classList.add('miss');
+      box.textContent = '✕';
+      await sleep(200);
+    }
+    busy = false;
+  }
+  async function runQuantum() {
+    if (busy) return;
+    busy = true;
+    $('quantumBtn').disabled = true;
+    $('quantumStatus').textContent = '중첩을 이용해 4개 상자를 동시에 살펴봅니다!';
+    for (let i = 1; i <= 4; i++) $('qb' + i).classList.add('checking');
+    await sleep(1000);
+    for (let i = 1; i <= 4; i++) {
+      const box = $('qb' + i);
+      box.classList.remove('checking');
+      box.classList.add(i === treasure ? 'found' : 'miss');
+      box.textContent = i === treasure ? '★' : '✕';
+    }
+    $('quantumStatus').textContent = '[성공] 단 1번 만에 보물을 찾았습니다!';
+    busy = false;
+  }
+  $('normalBtn').addEventListener('click', runNormal);
+  $('quantumBtn').addEventListener('click', runQuantum);
+  $('resetGameBtn').addEventListener('click', resetGame);
+  resetGame();
+</script>
+</body>
+</html>
